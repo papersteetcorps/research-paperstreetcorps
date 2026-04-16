@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -12,44 +12,6 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    // Supabase redirects with tokens in the URL hash:
-    // /auth/reset-password#access_token=xxx&refresh_token=xxx&type=recovery
-    // The SSR browser client doesn't always auto-detect these,
-    // so we extract and set the session manually.
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const accessToken = params.get("access_token");
-    const refreshToken = params.get("refresh_token");
-
-    if (accessToken && refreshToken) {
-      supabase.auth
-        .setSession({ access_token: accessToken, refresh_token: refreshToken })
-        .then(({ error }) => {
-          if (!error) setSessionReady(true);
-        });
-    }
-
-    // Also listen for auth state changes as a fallback
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-        setSessionReady(true);
-      }
-    });
-
-    // Check for existing session (e.g. page refresh while still logged in)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   async function handleReset(e: React.FormEvent) {
     e.preventDefault();
@@ -89,22 +51,6 @@ export default function ResetPasswordPage() {
           </div>
           <h2 className="text-xl font-semibold text-foreground mb-3">Password updated</h2>
           <p className="text-surface-400 text-sm">Redirecting to your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!sessionReady) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <div className="text-center max-w-sm space-y-4">
-          <p className="text-surface-400 text-sm">Verifying reset link...</p>
-          <p className="text-surface-600 text-xs">
-            If this takes too long, your link may have expired.{" "}
-            <Link href="/auth/forgot-password" className="text-accent-blue hover:text-accent-blue/80 transition-colors">
-              Request a new one
-            </Link>
-          </p>
         </div>
       </div>
     );
@@ -167,6 +113,12 @@ export default function ResetPasswordPage() {
               {loading ? "Updating..." : "Update password"}
             </button>
           </form>
+
+          <div className="mt-6 pt-6 border-t border-surface-700 text-center">
+            <Link href="/auth/login" className="text-surface-400 text-sm hover:text-surface-200 transition-colors">
+              Back to sign in
+            </Link>
+          </div>
         </div>
       </div>
     </div>

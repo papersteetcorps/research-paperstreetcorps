@@ -17,18 +17,33 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const supabase = createClient();
 
-    // Listen for the PASSWORD_RECOVERY event — Supabase client
-    // automatically picks up the token from the URL hash and
-    // establishes a session.
+    // Supabase redirects with tokens in the URL hash:
+    // /auth/reset-password#access_token=xxx&refresh_token=xxx&type=recovery
+    // The SSR browser client doesn't always auto-detect these,
+    // so we extract and set the session manually.
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+
+    if (accessToken && refreshToken) {
+      supabase.auth
+        .setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error }) => {
+          if (!error) setSessionReady(true);
+        });
+    }
+
+    // Also listen for auth state changes as a fallback
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setSessionReady(true);
       }
     });
 
-    // Also check if there's already a session (e.g. page refresh)
+    // Check for existing session (e.g. page refresh while still logged in)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setSessionReady(true);
     });

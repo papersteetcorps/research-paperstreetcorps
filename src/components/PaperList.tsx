@@ -95,30 +95,39 @@ export default function PaperList({
 
       {/* Paper cards */}
       {filtered.length > 0 ? (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((paper) => (
             <Link
               key={paper.id}
               href={`/papers/${paper.id}`}
-              className="block border border-surface-800 rounded-xl p-5 hover:border-surface-600 transition-colors"
+              className="group relative block bg-surface-900/30 border border-surface-800 rounded-2xl p-6 hover:border-surface-600 transition-all hover:bg-surface-900/60"
             >
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-xs bg-accent-teal/15 text-accent-teal px-2 py-0.5 rounded-full">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-xs bg-accent-teal/15 text-accent-teal px-2.5 py-1 rounded-full font-medium">
                   {paper.category}
                 </span>
                 <span className="text-xs text-surface-500">
                   {new Date(paper.submitted_at).toLocaleDateString("en-US", {
                     year: "numeric",
-                    month: "long",
+                    month: "short",
                     day: "numeric",
                   })}
                 </span>
               </div>
-              <h3 className="font-semibold text-foreground">{paper.title}</h3>
-              <p className="text-sm text-surface-500 mt-1">{paper.authors}</p>
-              <p className="text-sm text-surface-400 mt-2 line-clamp-2">
+              <h3 className="font-semibold text-foreground text-lg leading-snug group-hover:text-accent-blue transition-colors">
+                {paper.title}
+              </h3>
+              <p className="text-sm text-surface-500 mt-2">{paper.authors}</p>
+              <p className="text-sm text-surface-400 mt-3 line-clamp-3 leading-relaxed">
                 {paper.abstract}
               </p>
+              <div className="mt-4 pt-4 border-t border-surface-800 flex items-center text-xs text-surface-500 group-hover:text-accent-blue transition-colors">
+                Read paper
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="ml-1 transition-transform group-hover:translate-x-1">
+                  <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
+                  <polyline points="12,5 19,12 12,19" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
             </Link>
           ))}
         </div>

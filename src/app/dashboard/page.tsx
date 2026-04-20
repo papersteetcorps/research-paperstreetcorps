@@ -167,9 +167,11 @@ export default async function DashboardPage({
                               <p className="text-sm text-foreground font-medium truncate">
                                 {author.name}
                               </p>
-                              <p className="text-xs text-surface-500 truncate">
-                                {author.email}
-                              </p>
+                              {author.email && (
+                                <p className="text-xs text-surface-500 truncate">
+                                  {author.email}
+                                </p>
+                              )}
                             </div>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-surface-400 shrink-0">
                               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>

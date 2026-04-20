@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import ProfileEditor from "@/components/ProfileEditor";
+
+type AuthorData = {
+  name: string;
+  email: string;
+  certificate_url: string | null;
+};
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   pending: {
@@ -32,12 +37,6 @@ export default async function DashboardPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
-    .from("researchers")
-    .select("id, name, email, affiliation")
-    .eq("id", user!.id)
-    .single();
-
   const { data: papers } = await supabase
     .from("papers")
     .select("*")
@@ -61,8 +60,6 @@ export default async function DashboardPage({
         </Link>
       </header>
 
-      {profile && <ProfileEditor profile={profile} />}
-
       {params.submitted === "1" && (
         <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 text-green-400 text-sm">
           Paper submitted successfully! It will be reviewed shortly.
@@ -73,6 +70,10 @@ export default async function DashboardPage({
         <div className="space-y-3">
           {papers.map((paper) => {
             const style = STATUS_STYLES[paper.status] || STATUS_STYLES.pending;
+            const authorsData: AuthorData[] = Array.isArray(paper.authors_data)
+              ? paper.authors_data
+              : [];
+
             return (
               <div
                 key={paper.id}
@@ -98,7 +99,7 @@ export default async function DashboardPage({
                   {paper.abstract}
                 </p>
 
-                <div className="flex items-center gap-4 text-xs text-surface-500">
+                <div className="flex items-center gap-4 text-xs text-surface-500 flex-wrap">
                   <span>{paper.category}</span>
                   <span>
                     Submitted{" "}
@@ -118,17 +119,69 @@ export default async function DashboardPage({
                       View PDF
                     </a>
                   )}
-                  {paper.status === "approved" && paper.certificate_url && (
-                    <a
-                      href={paper.certificate_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-accent-teal hover:text-accent-teal/80 transition-colors"
-                    >
-                      Download Certificate
-                    </a>
-                  )}
                 </div>
+
+                {/* Certificates section (approved papers only) */}
+                {paper.status === "approved" && (
+                  <div className="bg-surface-900/40 border border-surface-800 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-green-400">
+                        <circle cx="12" cy="8" r="6"/>
+                        <path d="M15.5 13L17 22l-5-3-5 3 1.5-9"/>
+                      </svg>
+                      <h4 className="text-xs font-medium text-surface-300 uppercase tracking-wider">
+                        Certificates of Publication
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {paper.certificate_url && (
+                        <a
+                          href={paper.certificate_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between gap-2 bg-accent-teal/10 hover:bg-accent-teal/20 border border-accent-teal/30 rounded-lg px-3 py-2 transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm text-accent-teal font-medium">Combined</p>
+                            <p className="text-xs text-surface-500 truncate">All co-authors</p>
+                          </div>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-accent-teal shrink-0">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                          </svg>
+                        </a>
+                      )}
+
+                      {authorsData.map((author, i) =>
+                        author.certificate_url ? (
+                          <a
+                            key={i}
+                            href={author.certificate_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between gap-2 bg-surface-900 hover:bg-surface-800 border border-surface-700 rounded-lg px-3 py-2 transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm text-foreground font-medium truncate">
+                                {author.name}
+                              </p>
+                              <p className="text-xs text-surface-500 truncate">
+                                {author.email}
+                              </p>
+                            </div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-surface-400 shrink-0">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                              <polyline points="7,10 12,15 17,10"/>
+                              <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                          </a>
+                        ) : null
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {paper.status === "rejected" && paper.rejection_note && (
                   <div className="bg-red-500/5 border border-red-500/10 rounded-lg px-3 py-2 text-sm text-red-400">

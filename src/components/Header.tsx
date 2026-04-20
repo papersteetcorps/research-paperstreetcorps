@@ -31,6 +31,7 @@ export default function Header() {
       ? [
           { href: "/submit", label: "Submit" },
           { href: "/dashboard", label: "My Submissions" },
+          { href: "/profile", label: "Profile" },
         ]
       : []),
   ];

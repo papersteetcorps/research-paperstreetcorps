@@ -66,11 +66,19 @@ export default async function PaperDetailPage({ params }: Props) {
 
       {/* Header */}
       <header className="space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="text-xs bg-accent-teal/15 text-accent-teal px-2.5 py-0.5 rounded-full">
             {paper.category}
           </span>
           <span className="text-xs text-surface-500">{formattedDate}</span>
+          {paper.certificate_url && (
+            <span className="inline-flex items-center gap-1.5 text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-0.5 rounded-full">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20,6 9,17 4,12" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Verified by Paper Street Corps
+            </span>
+          )}
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
@@ -107,16 +115,6 @@ export default async function PaperDetailPage({ params }: Props) {
           Download PDF
         </a>
 
-        {paper.certificate_url && (
-          <a
-            href={paper.certificate_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 border border-accent-teal text-accent-teal hover:bg-accent-teal/10 text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
-          >
-            View Certificate
-          </a>
-        )}
       </div>
 
       {/* PDF Embed */}
